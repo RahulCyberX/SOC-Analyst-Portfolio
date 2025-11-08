@@ -189,7 +189,7 @@ Answer: `rar`
 
 **Repository:** https://github.com/RahulCyberX/Phishing-Analysis
 
-**Medium Article:** 
+**Medium Article:** https://medium.com/@rahulcyberx/the-greenholt-phish-tryhackme-39353fa29a7f
 
 **TryHackMe Profile:** https://tryhackme.com/p/0xRahuL
 
