@@ -299,7 +299,7 @@ Answer: `THM{pL4y_w1Th_tH3_URL}`
 
 **Repository:** https://github.com/RahulCyberX/Phishing-Analysis
 
-**Medium Article:** 
+**Medium Article:** https://rahulcyberx.medium.com/snapped-phish-ing-line-tryhackme-9cf02d2635fd
 
 **TryHackMe Profile:** https://tryhackme.com/p/0xRahuL
 
