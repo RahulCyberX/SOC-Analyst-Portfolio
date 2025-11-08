@@ -520,7 +520,7 @@ Answer: `4024007128269551`
 
 # Socials
 
-**Repository:** https://github.com/RahulCyberX/SOC-Level-1-Challenges
+**Repository:** https://github.com/RahulCyberX/SOC-Analyst-Portfolio/
 
 **Medium Article:** 
 
