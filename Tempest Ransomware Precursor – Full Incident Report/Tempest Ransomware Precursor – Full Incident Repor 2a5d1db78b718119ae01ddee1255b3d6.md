@@ -939,7 +939,7 @@ Answer: `C:\Windows\system32\sc.exe \\TEMPEST create TempestUpdate2 binpath= C:\
 
 # Socials
 
-**Repository:** https://github.com/RahulCyberX/SOC-Level-1-Challenges
+**Repository:** https://github.com/RahulCyberX/SOC-Analyst-Portfolio/
 
 **Medium Article:** https://rahulcyberx.medium.com/tempest-soc-level-1-capstone-challenge-thm-54def2456dfa
 
