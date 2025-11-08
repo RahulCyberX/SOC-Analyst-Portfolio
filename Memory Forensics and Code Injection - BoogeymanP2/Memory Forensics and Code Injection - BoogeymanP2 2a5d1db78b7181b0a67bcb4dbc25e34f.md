@@ -283,7 +283,7 @@ Answer: `schtasks /Create /F /SC DAILY /ST 09:00 /TN Updater /TR 'C:\Windows\Sys
 
 # Socials
 
-**Repository:** https://github.com/RahulCyberX/SOC-Analyst-Portfolio
+**Repository:** https://github.com/RahulCyberX/SOC-Analyst-Portfolio/
 
 **Medium Article:** 
 
