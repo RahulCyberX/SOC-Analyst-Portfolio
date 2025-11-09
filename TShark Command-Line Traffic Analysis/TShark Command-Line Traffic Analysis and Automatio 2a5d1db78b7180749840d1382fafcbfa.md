@@ -1,17 +1,24 @@
 # TShark Command-Line Traffic Analysis and Automation
 
-# Objectives
+## **Objectives**
 
-- Investigated a real phishing alert inside TryHackMe’s isolated VM using only TShark and VirusTotal to turn a single pcap into full threat intel.
-- Extracted suspicious DNS queries, spotted PayPal impersonation, resolved malicious IPs, and pulled stolen credentials from HTTP traffic.
-- Defanged every indicator and built a timeline from first VT submission back in 2017—all in a safe sandbox with zero real-world risk.
-- VM: https://tryhackme.com/room/tsharkchallengesone
+* Perform end-to-end packet investigation using **TShark** to uncover phishing and credential theft activity in raw network captures.
+* Identify malicious DNS queries, HTTP credential exfiltration, and impersonation domains without relying on any GUI tools.
+* Combine **TShark**, **VirusTotal**, and **CyberChef** for rapid indicator extraction, validation, and safe defanging.
+* Reconstruct attacker infrastructure from captured DNS, HTTP, and email traces.
+* Build an accurate event timeline by correlating PCAP data with VirusTotal’s submission and reputation history.
+* Produce actionable threat intelligence while maintaining full operational safety inside an isolated VM.
 
-# Tools Used
+---
 
-- **TShark** (-r for reading pcap, -Y display filters, -z io,phs hierarchy, -V verbose details, frame contains/login.php)
-- **VirusTotal** (URL scan, Details → History, Relations tab for IP confirmation)
-- **CyberChef** (Defang URL/IP recipes)
+## **Tools Used**
+* VM: https://tryhackme.com/room/tsharkchallengesone
+* **TShark** – command-line packet analysis, filtering (`-Y`), protocol hierarchy (`-z io,phs`), verbose inspection (`-V`), and artifact extraction.
+* **VirusTotal** – domain/IP reputation check, submission timeline, and infrastructure mapping via the Relations tab.
+* **CyberChef** – defanging URLs and IPs, decoding embedded payloads, and cleaning indicators for safe reporting.
+* **Linux Terminal Utilities** – for redirection, pattern matching, and quick output parsing (`grep`, `nl`, `wc -l`).
+
+---
 
 # Investigation
 
@@ -215,14 +222,26 @@ tshark -r teamwork.pcap -Y "http contains gmail.com" -V
 - Found the **stolen email** inside the packet data.
 - It seems the person entered their initials on this false domain, and this way their credentials got snatched!
 
-# Lessons Learned
+## **Findings**
 
-- One weird DNS query in 793 packets can reveal an entire phishing kit—TShark makes it instant.
-- Always check protocol hierarchy first; 33 DNS frames screamed “look here.”
-- V flag on suspicious frames shows stolen creds in plain text—no GUI needed.
-- Defang everything before pasting; muscle memory saved me twice.
-- VT History tab turns old domains into instant context—2017 submission means long-lived threat.
-- Safe VM + TShark = I hunted real malware without ever worrying about getting owned.
+* Detected malicious DNS queries attempting to impersonate **PayPal** via domain `www[.]paypal[.]com4uswebappsresetaccountrecovery[.]timeseaways[.]com`.
+* Domain resolved to **184[.]154[.]127[.]226**, confirmed on VirusTotal as part of a long-running phishing campaign.
+* VirusTotal’s history showed **first submission in 2017**, indicating recurring reuse of the infrastructure.
+* HTTP inspection revealed **login form data** posting credentials to a fake PayPal page (`login.php`).
+* Captured exfiltrated **Gmail address and password fields** in plaintext, confirming credential theft via phishing.
+* Phishing kit leveraged DNS impersonation and HTTP POST exfiltration to mimic legitimate PayPal authentication flow.
+
+---
+
+## **Lessons Learned**
+
+* TShark can fully replace Wireshark for phishing and credential theft analysis when used with smart filtering.
+* **Protocol hierarchy (`-z io,phs`)** instantly guides where to start—DNS anomalies almost always tell the story.
+* Inspecting with **-V** exposes stolen data directly in packet payloads without ever opening a GUI.
+* Defanging IOCs before sharing ensures analyst safety and compliant threat reporting.
+* VirusTotal’s **Relations and History tabs** transform a single indicator into full adversary context.
+* Command-line packet analysis enables fast, repeatable, and automation-ready threat-hunting workflows.
+
 
 # Socials
 
