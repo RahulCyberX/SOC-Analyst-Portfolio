@@ -1,18 +1,24 @@
 # Wazuh + Sysmon Endpoint Investigation: Hunting Real Attacks
 
-## Objectives
+## **Objectives**
 
-- Investigated a full red-team simulation inside TryHackMe’s Wazuh lab using live Sysmon + Windows Event Logs from Apr 29, 2024 (12:00–20:00).
-- Tracked phishing delivery via PowerShell, scheduled-task persistence with Base64 registry payloads, Guest account activation + privilege escalation, LSASS credential dumping, and final data exfiltration to Pastebin—all from a single Wazuh dashboard.
-- Turned thousands of endpoint events into a complete kill-chain timeline with zero local tools, proving Wazuh is a SOC force multiplier in a safe, isolated environment.
-- VM: https://tryhackme.com/room/mondaymonitor
+* Performed a full endpoint threat-hunting investigation using **Wazuh + Sysmon** inside TryHackMe’s isolated VM simulating a real red-team attack chain.
+* Identified every attack stage: phishing download via PowerShell, Base64-encoded scheduled task persistence, Guest account activation with privilege escalation, LSASS credential dumping, and data exfiltration to Pastebin.
+* Mapped every step to relevant **Sysmon and Windows Event IDs** (1, 3, 10, 4738) and decoded registry payloads directly from Wazuh logs.
+* Built a timeline of the complete **MITRE ATT&CK chain** from delivery to exfiltration using only Wazuh’s dashboard and filtering tools.
 
-## Tools Used
+---
 
-- **Wazuh Dashboard** (Security Events → Monday_Monitor query, time-range filtering, rule.id + eventID filters)
-- **Sysmon + Windows Event Logs** (Event ID 1 process creation, 3 network, 10 process access, 4738 user changes)
-- **CyberChef** (Base64 decoding registry payloads)
-- **Column customization** (parentCommandLine, commandLine, Message fields for instant visibility)
+## **Tools Used**
+* VM: [TryHackMe Wazuh Lab](https://tryhackme.com/room/mondaymonitor)
+* **Wazuh Dashboard** – Investigated live Sysmon and Windows logs using saved query `Monday_Monitor`.
+* **Sysmon** – Captured process creation, network connections, process access, and registry operations (Event IDs 1, 3, 10).
+* **Windows Event Logs** – Tracked user and group changes (Event ID 4738).
+* **CyberChef** – Decoded Base64-encoded registry payloads for persistence analysis.
+* **Custom Column Filters** – Exposed parentCommandLine, commandLine, and Message fields for deeper event visibility.
+
+---
+
 
 # Investigation
 
@@ -237,14 +243,45 @@ Swiftspend Finance is testing its endpoint security using **Wazuh** and **Sysmon
 
 ---
 
-# Lessons Learned
 
-- Wazuh saved queries (Monday_Monitor) + time-range = instant context in chaotic logs.
-- PowerShell downloading .xlsm to TEMP = phishing 99% of the time—filter rule.id:255042 first.
-- schtasks.exe + reg add + Base64 in HKCU = textbook T1053.005 persistence—always check parentCommandLine.
-- Guest account activation + net.exe password changes = lateral movement red flag; scroll 10 events around 4738.
-- memotech.exe accessing lsass.exe (Event ID 10) = credential dumping confirmed—no guessing needed.
-- Safe VM + Wazuh dashboard = I just hunted a full APT simulation without installing a single agent.
+## **Findings**
+
+* **Phishing Delivery:**
+
+  * PowerShell downloaded `PhishingAttachment.xlsm` to `%TEMP%` as `SwiftSpend_Financial_Expenses.xlsm`.
+  * Attack vector: malicious macro execution.
+
+* **Persistence Setup:**
+
+  * `schtasks.exe` created a daily task using Base64 registry payload (`HKCU\SOFTWARE\ATOMIC-T1053.005`).
+  * Decoded payload pointed to remote PowerShell execution — **T1053.005 (Scheduled Task/Job)**.
+
+* **Privilege Escalation:**
+
+  * Guest account reactivated and added to Administrators group.
+  * Password changed to `I_AM_M0NIT0R1NG` using `net.exe` and `net1.exe`.
+  * Confirmed via Event ID 4738 and process creation events.
+
+* **Credential Dumping:**
+
+  * `memotech.exe` accessed `lsass.exe` memory (Sysmon Event ID 10).
+  * Indicates credential harvesting activity – **T1003.001 (LSASS Memory)**.
+
+* **Data Exfiltration:**
+
+  * PowerShell posted sensitive data to Pastebin API using `Invoke-RestMethod`.
+  * Exfiltrated content included flag: `THM{M0N1T0R_1$_1N_3FF3CT}`.
+
+---
+
+## **Lessons Learned**
+
+* Time-filtered Wazuh queries provide a clean, contextual timeline of every attack stage.
+* PowerShell downloading `.xlsm` to `%TEMP%` is an immediate phishing IOC—always verify source URLs.
+* Registry-based Base64 payloads often hide persistence tasks—decode before dismissing.
+* Unauthorized Guest account activation and group modifications are classic privilege escalation signs.
+* LSASS access events (ID 10) instantly confirm credential dumping—no need for external tools.
+* Wazuh alone can reconstruct entire adversary activity from telemetry—true SOC-level investigation from a browser.
 
 # Socials
 
