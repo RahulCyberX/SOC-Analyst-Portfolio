@@ -1,18 +1,24 @@
 # ELK Stack Incident Investigation – C2 Beaconing
 
-## Objectives
+## **Objectives**
 
-- Traced a real HR insider C2 infection inside TryHackMe’s Elastic lab using only **March 2022 HTTP connection_logs** in Kibana.
-- Pivoted from IDS alert → Browne → 192.166.65.54 → **bitsadmin** download → Pastebin C2 (pastebin.com/yTg0Ah6a) → secret.txt → final flag **THM{...}**.
-- Proved Kibana Discover + KQL turns a single suspicious user_agent into a complete kill-chain in under 5 minutes—all from a browser in a fully isolated environment.
+* Investigate March 2022 HTTP connection logs in Kibana to confirm suspected **C2 beaconing** by HR employee **Browne**.
+* Identify Browne’s source IP, suspicious download activity, and the binary used to contact external servers.
+* Correlate HTTP GET requests, user_agent strings, and destination domains to reconstruct the infection chain.
+* Discover the full C2 URL on Pastebin and extract the hidden THM flag from the attacker’s file.
+* Demonstrate how Kibana Discover + KQL can expose an entire C2 operation from a single log entry inside a safe TryHackMe lab.
+
+---
+
+## **Tools Used**
 - VM: [https://tryhackme.com/room/itsybitsy](https://tryhackme.com/room/itsybitsy)
+* **Kibana Discover** (March 2022 time filter, Top Values for source_ip, field inspection)
+* **KQL filters** (`method : GET` AND `source_ip : 192.166.65.54`)
+* **User_Agent Analysis** (bitsadmin → LOLBIN indicator)
+* **Pastebin Inspection** (view raw C2 URL and retrieve payload)
+* **Browser verification** (for secret.txt content and flag confirmation)
 
-## Tools Used
-
-- **Kibana Discover** (March 2022 time filter, source_ip Top Values, method:GET + source_ip filter)
-- **KQL + field filters** (method: GET, source_ip: 192.166.65.54)
-- **user_agent parsing** (bitsadmin = LOLBIN red flag)
-- **Pastebin raw view** (direct flag extraction)
+---
 
 # Kibana C2 Investigation
 
@@ -113,14 +119,27 @@ My objective was to investigate Browne’s activity, identify the C2 connection,
 
 ---
 
-# Lessons Learned
 
-- Always start with **source_ip Top Values** after a user alert—Browne’s IP screamed loudest.
-- bitsadmin in user_agent = instant LOLBIN beacon; no custom malware needed.
-- One GET to Pastebin from the suspect IP = full C2 URL in a single log line.
-- KQL method: GET + single IP filter = surgical precision; no noise, no scroll.
-- Pastebin raw URLs are attacker favorites—check /raw/ or direct file links next time.
-- Safe VM + pre-ingested connection_logs = I just hunted real C2 with nothing but a browser and two filters.
+## **Findings**
+
+* **Source IP:** `192.166.65.54` belonged to Browne’s system.
+* **User Agent:** `bitsadmin` — a legitimate Windows utility abused for file transfers.
+* **C2 Domain:** `pastebin.com` used for exfiltration and command retrieval.
+* **C2 URL:** `pastebin.com/yTg0Ah6a`
+* **Downloaded File:** `secret.txt` hosted on Pastebin.
+* **Recovered Flag:** `THM{...}` inside Pastebin’s raw content.
+
+---
+
+## **Lessons Learned**
+
+* Start with Top Values for **source_ip** to isolate the noisiest host fast.
+* **bitsadmin** in logs is a classic LOLBIN beacon—no custom malware needed.
+* A single **KQL** filter (`method:GET AND source_ip`) cuts straight to the infection chain.
+* Pastebin is a common C2 medium—always inspect URI paths and raw data.
+* Elastic Stack logs + Kibana UI = complete C2 forensics from a browser with zero endpoint access.
+
+
 
 # Socials
 
