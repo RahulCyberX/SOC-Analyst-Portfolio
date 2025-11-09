@@ -1,20 +1,24 @@
 # Wireshark Network Traffic Analysis
 
-# Objectives
+## **Objectives**
 
-- Mastered real-world traffic analysis in Wireshark inside TryHackMe’s isolated VM to hunt attacks across the entire kill chain.
-- Detected Nmap scans (TCP Connect, SYN, UDP), ARP poisoning MITM, host/user enumeration via DHCP/NetBIOS/Kerberos, and multiple tunneling techniques (ICMP-SSH, DNS, FTP abuse).
-- Decrypted HTTPS with session keys, extracted cleartext credentials, spotted Log4j RCE, and turned findings into firewall ACL rules.
-- Proved I can go from raw pcap to actionable defense without ever touching a real network.
-- Virtual Machine: https://tryhackme.com/room/wiresharktrafficanalysis
+* Analyze real-world network captures in Wireshark to detect malicious activity across all stages of an attack.
+* Identify Nmap scans (TCP Connect, SYN, UDP), ARP poisoning MITM attacks, host/user enumeration via DHCP, NetBIOS, and Kerberos.
+* Detect data exfiltration and C2 traffic using tunneling techniques such as DNS, ICMP, and FTP.
+* Decrypt HTTPS traffic using provided session keys to reveal hidden payloads, credentials, and C2 callbacks.
+* Investigate HTTP, FTP, and Log4j exploitation attempts to understand post-exploitation behaviors.
+* Generate actionable **Firewall ACL rules** directly within Wireshark to mitigate and block future threats.
 
-# Tools Used
+---
 
-- **Wireshark** (display filters, Follow TCP Stream, Export Objects, Credentials window, Firewall ACL Rules)
-- **CyberChef** (Base64 decode + defang IPs/domains)
-- **Columns & sorting** (User-Agent, server_name, CNameString)
-- **KeysLogFile.txt** (TLS decryption)
-- **Right-click magic** (Conversation Filter, Apply as Column, Find in stream)
+## **Tools Used**
+* Virtual Machine: https://tryhackme.com/room/wiresharktrafficanalysis
+* **Wireshark** — filters, conversations, Follow TCP Stream, Export Objects, TLS decryption, ACL generation.
+* **CyberChef** — Base64 decoding, IP/domain defanging.
+* **KeysLogFile.txt** — decrypting HTTPS sessions.
+* **Wireshark Tools → Credentials & Firewall ACL Rules** — cleartext credential extraction and rule automation.
+
+---
 
 # Investigation
 
@@ -1118,14 +1122,28 @@ add allow MAC 00:d0:59:aa:af:80 any in
 
 ---
 
-# Lessons Learned
 
-- Filters + columns = instant clarity; never scroll raw packets again.
-- Follow TCP Stream is the fastest way to spot STOR, CHMOD, or Base64 payloads.
-- Oversized ICMP or super-long DNS queries scream tunneling every time.
-- KeysLogFile turns HTTPS from black box to plain text—always check for it.
-- Credentials window finds logins you’d miss manually.
-- Firewall ACL Rules menu writes production blocks for you—copy-paste and done.
+## **Findings**
+
+* Multiple **Nmap scan types** (TCP Connect, SYN, and UDP) detected; port 68 confirmed open via UDP analysis.
+* **ARP poisoning** successfully performed by attacker `192.168.1.25`, intercepting 90 HTTP packets and 6 credential submissions.
+* **DNS and ICMP tunneling** confirmed — ICMP carried SSH traffic; DNS queries directed to `dataexfil[.]com`.
+* **FTP abuse** identified with brute-force attempts, file upload via `STOR README`, and permission change using `CHMOD 777`.
+* **HTTP analysis** revealed Log4j exploit (Base64 payload → C2 IP `62[.]210[.]130[.]250`) and malicious user-agents.
+* **HTTPS decryption** uncovered traffic to `safebrowsing[.]googleapis[.]com` and hidden flag `FLAG{THM-PACKETMASTER}`.
+* **Cleartext credentials** extracted via Wireshark’s Credential tool, showing weak and empty password submissions.
+
+---
+
+## **Lessons Learned**
+
+* Custom Wireshark filters and columns are faster than manual inspection.
+* ICMP or DNS packet anomalies almost always indicate tunneling.
+* TLS decryption with session keys exposes threats hidden in HTTPS.
+* Follow TCP Stream instantly reveals uploads, exploits, and credential leaks.
+* Wireshark’s ACL generator converts analysis directly into defensive firewall rules.
+* The Credentials window saves hours of hunting — every cleartext protocol is an open door.
+
 
 # Socials
 
