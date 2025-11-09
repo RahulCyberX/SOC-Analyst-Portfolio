@@ -1,20 +1,25 @@
 # Live Windows System Investigation with Sysinternals Suite
 
-# Objectives
+## **Objectives**
 
-- Explored the full Sysinternals Suite inside TryHackMe’s Windows VM to level up from basic Task Manager to pro-level incident response.
-- Installed the suite locally, mastered Sysinternals Live, hunted unsigned files, exposed hidden ADS streams, and verified remote IPs with WHOIS.
-- Used Process Explorer to spot image hijacks, dumped processes, monitored every registry write with ProcMon, and extracted strings from real binaries.
-- Proved I can now investigate a compromised Windows box like a real DFIR analyst—all in a safe, disposable lab.
-- Virtual Machine: https://tryhackme.com/room/btsysinternalssg
+* Investigate live Windows systems using the full **Sysinternals Suite** for endpoint and memory-based threat hunting.
+* Detect unsigned, hidden, or hijacked binaries using **Sigcheck**, **Streams**, and **Autoruns**.
+* Analyze running processes, registry changes, and network connections in real time with **ProcMon**, **Process Explorer**, and **TCPView**.
+* Perform secure file analysis—dump, hash, and verify executables, detect alternate data streams, and confirm network destinations with **WHOIS** and **Talos Reputation**.
+* Build practical DFIR workflows for detecting persistence, hidden malware, and lateral movement across Windows systems.
+* Execute all operations safely within a **sandboxed TryHackMe Windows VM** for hands-on investigation without risk.
 
-# Tools Used
+---
 
-- **Sysinternals Suite** (Sigcheck, Streams, SDelete, TCPView, Autoruns, ProcDump, Process Explorer, ProcMon, PsExec, Sysmon, WinObj, BgInfo, RegJump, Strings)
-- **Sysinternals Live** (\live.sysinternals.com\tools*)
-- **PowerShell** (Download-SysInternalsTools, Get-Service webclient)
-- **VirusTotal + Talos Reputation + WHOIS** (IP/domain verification)
-- **notepad + streams.exe** (reading hidden ADS)
+## **Tools Used**
+* Virtual Machine: https://tryhackme.com/room/btsysinternalssg
+* **Sysinternals Suite:** Sigcheck, Streams, Autoruns, TCPView, Process Explorer, ProcMon, ProcDump, PsExec, SDelete, Sysmon, WinObj, BgInfo, RegJump, Strings.
+* **Sysinternals Live:** Remote execution via `\\live.sysinternals.com\tools\`.
+* **PowerShell:** Service control, Sysinternals downloads, automation scripts.
+* **VirusTotal / Talos Intelligence / WHOIS:** IP, domain, and hash reputation checks.
+* **CyberChef & Notepad:** Safe analysis of alternate data streams and encoded strings.
+
+---
 
 # Investigation
 
@@ -430,14 +435,27 @@ Other tools fall under the **System Information** category. Link to explore thes
 
 ---
 
-# Lessons Learned
 
-- Add Sysinternals to PATH once and rule Windows forever—no more hunting EXEs.
-- Streams.exe finds hidden ADS in seconds; notepad file:ads.txt is the cheat code.
-- Process Explorer + Verify Signatures column = instant “is this legit?” check.
-- Autoruns Image Hijacks tab catches sneaky taskmgr.exe → procexp.exe swaps every time.
-- Strings + findstr .pdb on any binary leaks full build paths—gold for attribution.
-- Safe VM + pre-loaded Sysint folder = I just DFIR’d a real box without touching my own PC.
+## **Findings**
+
+* Detected **unsigned binaries** within `C:\Windows\System32` using **Sigcheck**, highlighting potential tampering.
+* Identified hidden **Alternate Data Stream (ADS)** content in `file.txt:ads.txt`, confirming data concealment via **Streams.exe**.
+* Observed established remote connection to `52.154.170.73` through **TCPView**; WHOIS and Talos confirmed it as **Microsoft Corp**, ruling out C2 activity.
+* **Autoruns Image Hijacks** revealed persistence manipulation — `taskmgr.exe` redirected to `C:\TOOLS\SYSINT\PROCEXP.exe`.
+* **Process Explorer** verified all running process signatures and exposed active **WebDAV** handle to Sysinternals Live tools.
+* Extracted **.pdb** path from **ZoomIt.exe** via **Strings**, confirming developer build traceability.
+
+---
+
+## **Lessons Learned**
+
+* **Sysinternals Suite** transforms routine admin tools into full-fledged forensic utilities when used systematically.
+* ADS detection via **Streams.exe** exposes file-based stealth tactics missed by standard AV scans.
+* **Autoruns** is the fastest way to find persistence—especially image hijacks and startup key abuse.
+* **ProcMon**’s filtering mastery separates critical registry or file writes from background noise.
+* **Verify Signatures** in Process Explorer is the single most reliable indicator of trusted vs. tampered binaries.
+* A properly configured **Sysinternals environment** (PATH + Live) allows instant, GUI-free endpoint triage across any system.
+
 
 # Socials
 
