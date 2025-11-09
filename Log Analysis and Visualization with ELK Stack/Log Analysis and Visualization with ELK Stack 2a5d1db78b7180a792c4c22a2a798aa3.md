@@ -1,19 +1,24 @@
 # Log Analysis and Visualization with ELK Stack
 
-## Objectives
+## **Objectives**
 
-- Mastered full-cycle log investigation inside TryHackMe’s Elastic Stack lab using real January 2022 VPN logs from CyberT.
-- Hunted post-termination access by ex-employee **Johny Brown** using Kibana Discover, KQL, visualizations, and dashboards—all from a browser with zero local tools.
-- Built production-ready artifacts: custom tables, pie charts, time-series graphs, and a complete SOC dashboard showing failed logins, geographic spikes, and anomalous IPs.
-- Proved Kibana turns raw JSON logs into instant threat intelligence in a safe, isolated environment.
+* Investigate January 2022 VPN connection logs using Kibana’s Discover, Visualize, and Dashboard modules inside Elastic Stack.
+* Query and filter logs with **KQL** to detect post-termination access by ex-employee **Johny Brown**.
+* Analyze failed logins, top source IPs, and anomalous geolocations through dynamic time-series filtering.
+* Build and organize visualizations (tables, pie charts, bar graphs) into a SOC-ready dashboard.
+* Derive actionable insights and confirm post-employment access attempts in a safe, browser-based lab.
+
+---
+
+## **Tools Used**
 - VM: https://tryhackme.com/room/investigatingwithelk101
+* **Kibana** (Discover, Visualize, Dashboard — filtering, field toggling, time brushing, object saving)
+* **KQL (Kibana Query Language)** (field queries, wildcards, AND/OR/NOT logic, timestamp filters)
+* **Elasticsearch** (data storage and indexed search)
+* **Logstash + Beats** (data ingestion and normalization pipeline)
+* **vpn_connections index** (real January 2022 VPN logs from CyberT)
 
-## Tools Used
-
-- **Kibana** (Discover → KQL search bar, Time Filter, Fields pane, Visualize → Pie/Table/Bar, Dashboard → Add from Library)
-- **KQL queries** (Source_Country : "United States", UserName : "Johny Brown" and @timestamp > "2022-01-01", wildcards, AND/OR/NOT)
-- **Timeline brushing** (click 11 Jan spike → instant IP isolation)
-- **Saved objects** (searches, visualizations, full dashboard)
+---
 
 # Task 1: Introduction
 
@@ -406,14 +411,26 @@ Combine all saved visualizations into a single interactive **Kibana dashboard**.
 
 ---
 
-# Lessons Learned
+## **Findings**
 
-- Time Filter + Index Pattern = your first move—always lock the date range before touching KQL.
-- Fields pane Top Values = fastest way to spot the loudest IP (238.163.231.224) or user without writing a query.
-- KQL beats Lucene for humans: UserName : "Johny Brown" and @timestamp > "2022-01-01" found the single post-termination hit in one line.
-- Brush the timeline spike → auto-filter = magic for finding 11 Jan brute-force in 3 seconds.
-- Negative filters (NOT Source_State : "New York") clean noisy data instantly.
-- Safe VM + pre-loaded vpn_connections index = I just ran a full SOC investigation using only a browser and KQL.
+* Post-termination user **Johny Brown** logged one VPN connection attempt **after January 1, 2022**.
+* Major failed login spike detected on **11 January 2022**, linked to **Source IP 238.163.231.224 (New York)**.
+* Excluding **Source_State = New York** revealed multiple additional failed logins from other regions.
+* User **Emanda** generated consistent high-volume connections, dominating top user activity metrics.
+* Total **failed VPN connection attempts: 274** during January 2022.
+* Custom SOC dashboard consolidated user logins, source countries, and failed attempt trends for quick monitoring.
+
+---
+
+## **Lessons Learned**
+
+* Always set **Time Filter** and index before starting any search — it defines your investigation scope.
+* **Fields pane Top Values** instantly highlights dominant IPs and usernames without manual KQL.
+* **KQL queries** combine clarity and power — one line isolates post-termination activity precisely.
+* **Timeline brushing** exposes event spikes like brute-force waves within seconds.
+* **Negative filters** efficiently remove geographic noise and reveal real anomalies.
+* Elastic Stack’s browser-only workflow enables complete SOC investigations safely and efficiently.
+
 
 # Socials
 
