@@ -1,19 +1,25 @@
 # Ransomware Encryption Detection Using Sysmon Events
 
-## Objectives
+## **Objectives**
 
-- Conducted full DFIR on a live Windows victim machine inside TryHackMe’s isolated RDP lab after a ransomware attack that mysteriously “fixed itself.”
-- Traced the entire incident from phishing download → encryption → ransom note → attacker RDP panic → decryption → apology note → Bitcoin donation.
-- Used only built-in tools (Event Viewer + Sysmon) to reconstruct the timeline, prove the attacker’s mistake, and confirm the system is now clean—all without leaving the victim’s desktop.
-- VM: https://tryhackme.com/room/retracted
+* Investigate a live ransomware infection inside a Windows RDP VM to trace file encryption, ransom note creation, and attacker-initiated decryption.
+* Correlate Sysmon Event IDs (1, 3, 11) to reconstruct the full kill chain — from phishing download to attacker rollback.
+* Identify the fake antivirus installer, encryption marker extension, and outbound connections used by the malware.
+* Track the attacker’s RDP login, decryptor execution, and apology message proving human error.
+* Validate that the system was safely restored using built-in tools without further compromise.
 
-## Tools Used
+---
 
-- **Windows Event Viewer** (Sysmon Operational → Event ID 1 process, 3 network, 11 file creation)
-- **Sysmon logs** (pre-installed, full command lines + hashes)
-- **Browser history** (Ctrl+J → Show in folder)
-- **Notepad** (ransom note + apology)
-- **RDP session** (victim credentials: sophie / fluffy19601234!)
+## **Tools Used**
+* - VM: https://tryhackme.com/room/retracted
+* **Windows Event Viewer** (Sysmon Operational → Event ID 1 process creation, 3 network, 11 file creation)
+* **Sysmon Logs** (pre-installed with hashes, process tree, and timestamps)
+* **Browser History** (Ctrl+J to trace malicious download source)
+* **Notepad** (ransom and apology note analysis)
+* **RDP Session** (victim credentials for interactive triage)
+
+---
+
 
 # Investigation
 
@@ -262,14 +268,27 @@ The attacker accidentally infected a **charity organization**. Realizing the mis
 
 ---
 
-# Lessons Learned
 
-- Sysmon Event ID 1 + “SOPHIE.txt” in CommandLine = instant ransom-note author (Notepad.exe).
-- Browser downloads + Sysmon = perfect phishing ground truth—antivirus.exe from Google was never legit.
-- File creation (ID 11) with weird extension (.dmp) = encryption marker even when disguised as memory dumps.
-- Outbound TCP from antivirus.exe (ID 3) → 10.10.8.111 = C2 confirmed in one click.
-- RDP source IP 10.11.27.46 + decryptor.exe timestamp = attacker panic logon caught red-handed.
-- Safe RDP VM + pre-infected box = I just lived through a real ransomware case and watched the attacker back down.
+## **Findings**
+
+* The ransom note **SOPHIE.txt** was created by **Notepad.exe** at `2024-01-08 14:25:30 UTC`.
+* The malicious executable downloaded as **antivirus.exe** from a fake Google link.
+* Ransomware encrypted files using a fake dump extension **.dmp** as the encryption marker.
+* Sysmon Event ID 3 showed outbound traffic to attacker IP **10.10.8.111**.
+* The attacker reconnected via **RDP from 10.11.27.46**, executed **decryptor.exe**, and restored the victim’s data.
+* Final desktop note confirmed decryption and a **Bitcoin donation** as apology.
+
+---
+
+## **Lessons Learned**
+
+* Event ID 1 and CommandLine filtering instantly reveal the ransom note’s creator.
+* Fake antivirus downloads are a prime phishing delivery vector — browser logs are proof.
+* Unusual extensions like `.dmp` can act as stealthy encryption markers.
+* Sysmon’s network events (ID 3) expose C2 communication even after cleanup.
+* RDP reconnections from unknown IPs often indicate attacker remediation or persistence attempts.
+* A clean, isolated RDP VM is the safest environment for observing and validating ransomware behavior.
+
 
 # Socials
 
