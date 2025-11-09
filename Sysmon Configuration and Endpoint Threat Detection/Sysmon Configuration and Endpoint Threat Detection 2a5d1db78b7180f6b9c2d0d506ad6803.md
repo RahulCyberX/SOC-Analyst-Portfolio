@@ -1,18 +1,25 @@
 # Sysmon Configuration and Endpoint Threat Detection
 
-# Objectives
 
-- Tackled five real-world Sysmon investigations inside TryHackMe’s isolated Windows VM to simulate DFIR on adversary techniques.
-- Hunted USB drops via process creation and raw disk reads, spotted HTA masquerading through mshta.exe, uncovered registry persistence with hidden PowerShell, detected scheduled tasks hiding in ADS, and exposed Empire C2 botnet comms.
-- Pieced together kill-chains from EVT X logs without extra installs, focusing on event IDs like 1 (process), 3 (network), 9 (raw read), and 12/13 (registry).
-- Built skills to go from raw events to full IOCs like adversary IPs, payloads, and suspicious commands—all in a safe lab.
-- VM: https://tryhackme.com/room/sysmon
+## **Objectives**
 
-# Tools Used
+* Perform full-scale endpoint forensics using **Sysmon** event logs to detect and correlate adversary behavior across multiple techniques.
+* Investigate **USB-based infections**, **HTA masquerading attacks**, **registry and scheduled task persistence**, and **Empire C2 communication** using event IDs such as 1, 3, 9, 12, and 13.
+* Identify malicious process hierarchies, raw disk reads, registry payloads, alternate data streams, and suspicious network connections from `.evtx` logs.
+* Build a repeatable Sysmon workflow to extract IOCs (IPs, commands, payloads, registry keys) directly from logs without third-party tools.
+* Develop the ability to reconstruct adversary **kill-chains** purely from endpoint telemetry inside a safe TryHackMe VM.
 
-- **Event Viewer** (loading .evtx, filtering by ID, sorting by time, details pane for paths/commands)
-- **Sysmon logs** (pre-loaded Investigation-*.evtx files)
-- **Right-click analysis** (expanding event trees for parents, devices, registry keys)
+---
+
+## **Tools Used**
+ VM: https://tryhackme.com/room/sysmon
+* **Sysmon Event Logs (.evtx)** — core telemetry for process, network, and registry activities.
+* **Event Viewer** — filtered logs by event ID (1, 3, 9, 12, 13) and sorted by timestamps for timeline analysis.
+* **Right-click Details inspection** — verified parent–child relationships, image paths, and registry key values.
+* **PowerShell** (optional) — for extracting strings and viewing log metadata.
+* **CyberChef / Notepad** — decoding Base64 and reviewing hidden Alternate Data Streams.
+
+---
 
 # Investigation
 
@@ -270,22 +277,45 @@ Investigate C2 communications that may indicate botnet activity. Logs were in:
     - Port in use: `80`
 2. Destination hostname showed: **empire**, confirming Empire C2 framework.
 
-### Findings
 
-- **Adversary IP:** 172.30.1.253
-- **Port used:** 80
-- **C2 framework:** empire
+## **Findings**
+
+* **USB Intrusion:**
+
+  * Raw disk access detected (`Event ID 9`) from `\Device\HarddiskVolume3`.
+  * Registry confirmed USB persistence under `HKLM\System\CurrentControlSet\Enum\WpdBusEnumRoot`.
+  * Executed payload: `rundll32.exe` spawned via `svchost.exe`.
+
+* **HTA Masquerading:**
+
+  * `mshta.exe` executed fake `update.html` → real payload `update.hta`.
+  * Back-connect to adversary `10.0.2.18:4443` established via network event (ID 3).
+
+* **Registry Persistence:**
+
+  * Hidden PowerShell command stored in `HKLM\SOFTWARE\Microsoft\Network\debug`.
+  * C2 connection from `DESKTOP-O153T4R` to `empirec2 (172.30.1.253)` on port 80.
+
+* **Scheduled Task + ADS Persistence:**
+
+  * Malicious task “Updater” executed PowerShell from ADS file `c:\users\q\AppData:blah.txt`.
+  * Abnormal handle access from `lsass.exe` to `schtasks.exe` confirmed manipulation attempt.
+
+* **Empire C2 Botnet:**
+
+  * Continuous traffic from host to `172.30.1.253:80`, identified as **Empire C2 framework** beaconing.
 
 ---
 
-# Lessons Learned
+## **Lessons Learned**
 
-- Start with Event ID 1 for process trees—WUDFHost.exe screams USB every time.
-- RawAccessRead (ID 9) flags direct disk pokes; cross-check with device names.
-- Mshta.exe from IE = masquerading alert; always trace parent paths.
-- Registry mods (ID 12/13) hide payloads—debug keys are attacker favorites.
-- Schtasks.exe in ADS? Filter for more < file:stream.txt and decode Base64.
-- Safe VM + .evtx dumps = real threat hunting without risking my machine.
+* **Event ID 1** is the anchor—trace process lineage before chasing network noise.
+* **Event ID 9** highlights stealthy USB or raw disk reads—critical for spotting physical drops.
+* **Event IDs 12/13** expose persistence through registry edits; `debug` keys are attacker favorites.
+* **Alternate Data Streams** are common payload hideouts—always search for “`more < file:stream`” patterns.
+* **Empire C2 detection** is straightforward once you match repetitive port 80 callbacks from unknown hosts.
+* With **Sysmon + Event Viewer**, complete endpoint intrusion analysis is possible—no EDR required.
+
 
 # Socials
 
