@@ -4,12 +4,16 @@
 Hands-on portfolio demonstrating **40+ real SOC investigations** completed on TryHackMe SOC Level 1 Legacy path. All projects include **step-by-step methodology, tools, screenshots, findings, IOCs, and lessons learned** — exactly what L1 analysts do daily.
 
 ## Core Competencies
-- **SIEM**: Splunk SPL, ELK Stack (Kibana queries, dashboards)  
-- **Network Monitoring**: Wireshark, TShark, Zeek, Snort (IDS + inline), NetworkMiner, Brim/ZQL  
-- **Endpoint Security**: Sysmon, Sysinternals, Windows Event Logs, OsQuery, Wazuh, Velociraptor  
+- **SIEM**: Splunk, ELK Stack (Kibana queries, dashboards)  
+- **Network Monitoring**: Wireshark, TShark, Zeek, Snort (IDS + inline), NetworkMiner, Brim  
+- **Endpoint Security**: Sysmon, Sysinternals, Windows Event Logs, OsQuery, Wazuh, Velociraptor
+- **Threat Intelligence**: Yara, OpenCTI, MISP, VirusTotal, HybridAnalysis, AbuseIPDB, MITRE ATT&CK Navigator
 - **Digital Forensics**: Volatility, Autopsy, KAPE, Registry Explorer  
-- **Incident Response**: Redline, Velociraptor, TheHive, Splunk basics  
+- **Incident Response**: Redline, Velociraptor, TheHive, Splunk basics
+- **Phishing Analysis**: urlscan.io, ANY.RUN, email header analysis
+- **Intrusion Detection**: Snort (rule writing + alerts)
 
+  
 ## Projects (40+ Completed)
 | # | Project | Focus Area |
 |---|--------|------------|
