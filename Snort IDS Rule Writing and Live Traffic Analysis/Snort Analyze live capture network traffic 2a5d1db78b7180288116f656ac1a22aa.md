@@ -1,12 +1,19 @@
 # Snort: Analyze live capture network traffic
 
-I just cleared Snort Challenge - The Basics and it was the perfect hands-on follow-up to the intro room. Everything runs safely inside an isolated virtual machine with pre-loaded pcaps and empty rule files, so no real network gets touched. The goal is straightforward: level up from just running Snort to actually writing your own detection rules for common protocols and tricky scenarios. I spent the whole time crafting alerts for HTTP and FTP traffic, spotting payload sizes, hunting torrent files with content matching, fixing broken rules that wouldn't fire, and even pulling out details from EternalBlue exploits. By the end I could turn vague ideas like "find big packets" into working signatures that lit up exactly the right alerts. Felt great to see my custom rules catch stuff in real pcaps without any hand-holding.
+## Objectives
 
-Virtual Machine Provided in: https://tryhackme.com/room/snortchallenges2
+- Practice creating **custom Snort IDS rules** and replaying **.pcap** traffic.
+- Detect and validate traffic for **HTTP (80/tcp)**, **FTP (21/tcp)**, and **file signatures** (PNG/GIF), plus **torrent metafiles**.
+- Enrich alerts by extracting **session/host details** (IPs, ports, TTL, SEQ/ACK) and **application artifacts** (service banners, file headers, encodings).
+- Build specialty rules for **failed/successful FTP auth**, **GIF/PNG magic**, **torrent indicators**, **IPC$ keyword**, **payload sizes**, and **base64 beaconing**.
 
 ## Tools Used
 
-Snort, vim (editing rules), Base64Decode 
+- **Snort** (custom rules, offline pcap analysis: `r`, logging: `l`, full alerts: `A full`)
+- **nano** (rule editing), **strings/grep/less** (log triage), **CyberChef / base64decode** (decoding)
+- Terminal basics (`rm` for log resets, filters on `snort.log.*`)
+
+Virtual Machine Provided in: https://tryhackme.com/room/snortchallenges2
 
 # Investigation
 
@@ -235,17 +242,50 @@ To decode this encoded message, for conveince I just copied the string and paste
 
 ![image.png](image%2024.png)
 
-## Lessons Learned
+### Lessons Learned
 
-- Rule structure looks intimidating at first but it's just action-protocol-source-destination plus options like msg, sid, and content.
-- Always test on the exact pcap provided—small changes in direction (<> vs ->) can half your alert count.
-- Bidirectional rules with <> save time when you want both inbound and outbound without duplicates.
-- Content matching is insanely powerful for strings like ".torrent" or hex signatures in hidden files.
-- Payload size checks with dsize:770<>855 catch weird packets no port filter would.
-- Fixing syntax errors in someone else's rule teaches way more than writing perfect ones from scratch.
-- External community rules for big CVEs like MS17-010 drop straight in and just work.
-- Reading alert logs with -A full gives you full packet details when console mode isn't enough.
-- All this in a safe VM means I can experiment wildly and break things until the alerts finally match.
+- **HTTP rule (port 80, both directions):**
+    
+    `alert tcp any any <> any 80 (msg:"HTTP any-80"; sid:1000001; rev:1;)`
+    
+    → Replayed `mx-3.pcap` produced **60 hits**; drilling logs surfaced per-packet **src/dst, ports, TTL, SEQ/ACK**.
+    
+- **FTP detection & auth outcomes (21/tcp):**
+    - Service banner extraction via `strings` confirmed **Microsoft FTP Service**.
+    - **Failures (530):** `alert tcp any any -> any 21 (msg:"FTP login failed"; content:"530"; sid:1000002; rev:1;)` → **41** events.
+    - **Success (230):** `alert tcp any any -> any 21 (msg:"FTP login success"; content:"230"; sid:1000003; rev:1;)` → **1** event.
+    - **User OK, need pass (331):** general and **Administrator**specific variants using dual `content`.
+- **File-type fingerprinting with magic bytes:**
+    - **PNG:** `|89 50 4E 47 0D 0A 1A 0A|` → one hit; `strings` exposed embedded **software tag**.
+    - **GIF (either 87a/89a):** prefix `|47 49 46 38|` → **4** hits; logs showed **GIF89a**.
+    - Pattern: constrain with **flow/file_data** (if using newer Snort) to reduce false positives.
+- **Torrent metafile indicator:**
+    
+    `alert tcp any any <> any any (msg:".torrent file detected"; content:"torrent"; sid:1000009; rev:1;)`
+    
+    → Logs yielded **app name, MIME, host** for enrichment.
+    
+- **SMB/Exploit crumb:**
+    
+    `alert tcp any any <> any any (msg:"IPC$ seen"; content:"\\IPC$"; sid:1000010; rev:1;)`
+    
+    (Escape backslashes or use hex.) Useful for spotting **SMB admin share** touches.
+    
+- **Payload size heuristic:**
+    
+    `dsize:770<>855;` helped flag suspicious **beacon-sized** blobs:
+    
+    `alert tcp any any -> any any (msg:"770–855B payload"; dsize:770<>855; sid:1000011; rev:1;)`
+    
+- **Finding encodings & commands in payloads:**
+    - `snort -r snort.log.<ts> -dev` surfaces **encoders** (e.g., `Base64/` markers).
+    - Extract the blob after `Base64/` and decode (CyberChef / CLI) to recover the **command line**.
+- **Workflow tips:**
+    - **Reset logs** between runs (`rm -f snort.log.*`) to avoid stale counts.
+    - Use **bi-directional operator** `<>` for symmetric protocols (HTTP detections in reply payloads too).
+    - Prefer **unique SIDs**, increment **rev** when updating rules.
+    - Narrow matches with **offset/depth** or **pcre** to cut noise; pair with **flow:to_server,established** when applicable.
+- **Outcome:** Built a small, reusable **Snort playbook** covering service identification, auth state detection, file-type carving by signature, simple data-exfil/encoding clues, and SMB admin-share touches—plus a methodical log-triage routine to validate alerts against packet-level evidence.
 
 ## Socials
 
