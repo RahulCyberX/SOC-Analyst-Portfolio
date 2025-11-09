@@ -1,18 +1,28 @@
 # OsQuery SQL-Based Endpoint Interrogation
 
-# Objectives
+## **Objectives**
 
-- Applied Osquery SQL queries inside TryHackMe’s isolated Windows VM to hunt real forensic evidence across the entire system.
-- Discovered wipedisk tools via the **userassist** table, identified installed VPN software, counted live services, and exposed auto-starting batch files hidden in startup folders.
-- Proved Osquery turns a live endpoint into a searchable database—no agents, no reboots, just pure SQL in a safe sandbox.
-- VM: https://tryhackme.com/room/osqueryf8
+* Utilize **Osquery’s SQL-based interface** inside TryHackMe’s Windows VM to perform live endpoint forensics without agents or reboots.
+* Query Windows artifacts to uncover user activity, installed software, service states, and persistence mechanisms using structured SQL syntax.
+* Detect disk-wiping utilities from **userassist**, enumerate installed **VPN applications**, count **active services**, and locate **auto-start batch scripts** for persistence analysis.
+* Demonstrate how Osquery transforms live systems into **queryable forensic databases** suitable for rapid DFIR triage.
 
-# Tools Used
+---
 
-- **Osquery** (interactive shell, .tables, SELECT * FROM ...)
-- **SQL filters** (LIKE '%VPN%', LIKE '%.bat', COUNT(*))
-- **Osquery schema docs**
-- **Built-in tables** (userassist, programs, services, autoexec)
+## **Tools Used**
+* VM: https://tryhackme.com/room/osqueryf8
+* **Osquery Shell** — executed live SQL queries and schema exploration.
+* **Osquery Built-in Tables:**
+
+  * `userassist` → GUI-launched applications and timestamps.
+  * `programs` → installed software inventory.
+  * `services` → running and stopped Windows services.
+  * `autoexec` → startup and autorun executables.
+* **SQL Operators:** `LIKE`, `COUNT(*)`, `SELECT * FROM`, filters for `.bat`, `%VPN%`, etc.
+* **Osquery Schema Docs** → verified table purpose and column structures.
+
+---
+
 
 # Investigation
 
@@ -129,14 +139,39 @@ I found the complete path by checking the path column of the previous query:
 
 ---
 
-# Lessons Learned
 
-- .tables + schema docs = instant map of every forensic goldmine on Windows.
-- userassist catches GUI-launched malware (DiskWipe.exe) that Process Creation might miss.
-- LIKE '%keyword%' on programs table finds hidden VPNs in seconds.
-- COUNT(*) from services = one-liner health check on any endpoint.
-- autoexec + LIKE '%.bat' exposes startup persistence attackers love.
-- Safe VM + Osquery = I just DFIR’d a live box with nothing but SQL.
+## **Findings**
+
+* **Disk-Wiping Utility:**
+
+  * `userassist` revealed execution of **DiskWipe.exe**, indicating evidence tampering attempts.
+
+* **VPN Software:**
+
+  * `programs` table showed **ProtonVPN** installed, likely used for anonymized outbound connections.
+
+* **System Services:**
+
+  * `COUNT(*) FROM services` returned **215 active services**, confirming normal host activity baseline.
+
+* **Persistence Mechanism:**
+
+  * `autoexec` query located an autorun batch file:
+
+    * **Filename:** `batstartup.bat`
+    * **Full Path:** `C:\Users\James\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\batstartup.bat`
+
+---
+
+## **Lessons Learned**
+
+* Osquery converts endpoint telemetry into a **forensic SQL database** — powerful for IR without external tools.
+* `userassist` exposes GUI-executed binaries attackers rely on to evade command-line monitoring.
+* The `programs` table instantly reveals stealth software like VPNs or exfil tools.
+* Service enumeration with `COUNT(*)` is a quick integrity and persistence check.
+* `autoexec` uncovers startup abuse, making it ideal for persistence detection.
+* A safe TryHackMe VM + Osquery shell = full DFIR investigation powered purely by SQL.
+
 
 # Socials
 
