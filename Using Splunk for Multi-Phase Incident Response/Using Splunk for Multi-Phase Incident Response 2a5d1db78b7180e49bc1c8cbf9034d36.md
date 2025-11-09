@@ -2,25 +2,19 @@
 
 ## Objectives
 
-- Led a complete incident response inside TryHackMe’s Splunk lab against a **realistic website defacement** of Wayne Enterprises’ imreallynotbatman.com.
-- Mapped every attacker move across **all 7 Cyber Kill Chain phases** using only Splunk botsv1 index (Suricata, Sysmon, IIS, FortiGate) + OSINT pivoting.
-- Went from zero to full attribution:
-→ Recon (Acunetix + Shellshock)
-→ Exploitation (142-password Joomla brute-force)
-→ Installation (3791.exe → MD5 AAE3F5A29935E6ABCC2C2754D12A9AF0)
-→ C2 (prankglassinebracket.jumpingcrab.com)
-→ Actions on Obj (poisonivy-is-coming-for-you-batman.jpeg)
-→ Weaponization (Poison Ivy infrastructure + [lillian.rose@po1s0n1vy.com](mailto:lillian.rose@po1s0n1vy.com))
-→ Delivery (MirandaTateScreensaver.scr.exe)
-- Proved Splunk + Threat Intel turns a defaced homepage into a full APT dossier in a single report—all in a safe, isolated lab.
+* Correlate Suricata, IIS/HTTP, Sysmon, and FortiGate logs in Splunk to reconstruct a full web-defacement kill chain for **imreallynotbatman.com**.
+* Isolate attacker infrastructure, tooling, and credentials attempts; quantify brute-force activity and validate execution on the host.
+* Extract file/artifact IOCs (hashes, filenames, URIs) and map to OSINT sources for attribution.
+* Prove delivery/C2 path and the defacement asset used, then tie infrastructure to a likely operator identity.
+* Produce a concise, copy-ready dossier (Findings + Lessons) suitable for SOC reporting.
 
 ## Tools Used
-
 - VM: [https://tryhackme.com/room/splunk201](https://tryhackme.com/room/splunk201)
-- **Splunk** (index=botsv1, sourcetype=stream:http, sourcetype=suricata, XmlWinEventLog:EventCode=1, rex, stats, table)
-- **OSINT Platforms** (Robtex, VirusTotal, ThreatMiner, Hybrid-Analysis, AlienVault OTX, DomainTools)
-- **Regex** (rex field=form_data "passwd=(?<creds>\w+)")
-- **Sysmon + FortiGate + Suricata** (process creation, file hashes, IDS alerts, firewall URLs)
+* **Splunk (TryHackMe BOTSv1)**: `index=botsv1`, `sourcetype=stream:http|suricata|fortigate_utm|XmlWinEventLog`, `stats`, `table`, `rex`, field pivots.
+* **Log sources**: Suricata IDS, IIS/HTTP (stream:http), FortiGate UTM, **Sysmon** (EventCode=1).
+* **OSINT**: Robtex, VirusTotal, ThreatMiner, Hybrid-Analysis, AlienVault OTX, DomainTools/WHOIS.
+* **Regex**: `rex field=form_data "passwd=(?<creds>\w+)"` for credential extraction.
+
 
 # Task 1: Introduction — Incident Handling
 
@@ -821,69 +815,33 @@ Scrolled down to get more information about this Malware.
 
 ---
 
-# **Conclusion:**
+## Findings
 
-In this fun exercise, as a SOC Analyst, I investigated a cyber-attack where the attacker had defaced a website '[imreallynotbatman.com](http://imreallynotbatman.com/)' of the Wayne Enterprise. Mapped the attacker's activities into the 7 phases of the Cyber Kill Chain. 
+* **Recon/Exploitation**
 
-Here’s a recap of everything I have found so far:
+  * Scanner & vuln: **Acunetix** probing **Shellshock (CVE-2014-6271)** against **192.168.250.70**; site backend identified as **Joomla**.
+  * Brute-force: **142 POSTs** to `/joomla/administrator/index.php` from **23.22.63.114** (username `admin`, rotating passwords); later success via **40.80.148.42** (Mozilla UA).
+* **Installation/Execution**
 
-1. **Reconnaissance Phase:** 
-    
-    First I looked at any reconnaissance activity from the attacker to 
-    identify the IP address and other details about the adversary.
-    
-    **Findings:**
-    
-    - IP Address `40.80.148.42` was found to be scanning our webserver.
-    - The attacker was using Acunetix as a web scanner.
-2. **Exploitation Phase:** 
-    
-    **T**hen looked into the traces of exploitation attempts and found brute-force attacks against our server, which were successful.
-    
-    **Findings:**
-    
-    - Brute force attack originated from IP `23.22.63.114.`
-    - The IP address used to gain access: `40.80.148.42`
-    - 142 unique brute force attempts were made against the server, out of which one attempt was successful
-3. **Installation Phase:**
-    
-    Next, I looked at the installation phase to see any executable from the attacker's IP Address uploaded to our server.
-    
-    **Findings:**
-    
-    - A malicious executable file `3791.exe` was observed to be uploaded by the attacker.
-    - We looked at the sysmon logs and found the MD5 hash of the file.
-4. **Action on Objective:**
-    
-    After compromising the web server, the attacker defaced the website.
-    
-    **Findings:**
-    
-    - I examined the logs and found the file name used to deface the webserver.
-5. **Weaponization Phase:**
-    
-    I used various threat Intel platforms to find the attacker's  infrastructure based on the following information I saw in the above activities.
-    
-    - Domain: `prankglassinebracket.jumpingcrab.com`
-    - IP Address:
-        
-        ```
-        23.22.63.114
-        ```
-        
-    
-    **Findings:**
-    
-    - Multiple masquerading domains were found associated with the attacker's IPs.
-    - An email of the user `Lillian.rose@po1s0n1vy.com` was also found associated with the attacker's IP address.
-6. **Deliver Phase:**
-    
-    In this phase, I again leveraged online Threat Intel sites to find malware associated with the adversary's IP address, which appeared to be a secondary attack vector if the initial compromise failed.
-    
-    **Findings:**
-    
-    - A malware name `MirandaTateScreensaver.scr.exe` was found associated with the adversary.
-    - MD5 of the malware was `c99131e0169171935c5ac32615ed6261`
+  * Uploaded artifacts: **3791.exe**, **agent.php**; execution of **3791.exe** confirmed in Sysmon (EventCode 1).
+  * **MD5:** `AAE3F5A29935E6ABCC2C2754D12A9AF0`; **User:** `NT AUTHORITY\IUSR` (IIS anon), indicating web-layer launch.
+* **C2 & Defacement**
+
+  * Defacement asset: **poisonivy-is-coming-for-you-batman.jpeg** fetched by the server from **prankglassinebracket.jumpingcrab.com** (**23.22.63.114**).
+  * FortiGate detection: **HTTP.URI.SQL.Injection** rule fired from **40.80.148.42**.
+* **Weaponization/Delivery (OSINT)**
+
+  * Poison Ivy infra links to **23.22.63.114**; associated email **[lillian.rose@po1s0n1vy.com](mailto:lillian.rose@po1s0n1vy.com)**.
+  * Related malware: **MirandaTateScreensaver.scr.exe** (**MD5:** `c99131e0169171935c5ac32615ed6261`), corroborated across ThreatMiner, VT, and Hybrid-Analysis.
+
+## Lessons Learned
+
+* Pivot **Top talkers → HTTP POSTs → form_data** to quantify brute-force quickly; enrich with `rex` for credential extraction.
+* Confirm web-server compromise by pairing **upload indicators** with **Sysmon EventCode 1** (command line + user context).
+* Track defacements via **outbound fetches** from the server—artifact filename + domain usually appear in HTTP and firewall logs.
+* Treat **IIS anonymous (IUSR) executions** of new binaries as high-confidence web-shell/payload activity.
+* Always extend to **infrastructure OSINT**; domains, IPs, and hashes frequently tie back to families (e.g., Poison Ivy) and operators.
+* Keep a **repeatable Splunk workflow** (timebox → source narrowing → field pivots → regex → OSINT) to go from alert to attribution fast.
 
 ---
 
