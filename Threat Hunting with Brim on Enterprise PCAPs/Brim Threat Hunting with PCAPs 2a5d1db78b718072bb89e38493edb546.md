@@ -1,19 +1,18 @@
 # Brim Threat Hunting with PCAPs
 
-## Objectives
+## **Objectives**
 
-- Analyzed two real-world post-exploitation scenarios inside TryHackMe’s isolated Brim Security VM to confirm malware C2 and crypto-mining activity.
-- Used Brim’s Zeek-powered queries to trace CobaltStrike beaconing, file downloads, and secondary IcedID channels from a single infected workstation.
-- Identified crypto-mining traffic including Stratum protocol ports, IRC control channels, and exact byte counts to external mining pools.
-- Mapped Suricata alerts to MITRE ATT&CK tactics and extracted precise indicators without ever leaving the sandbox.
-- Virtual Machine: https://tryhackme.com/room/zeekbroexercises
+* Analyze post-exploitation traffic using Brim and Zeek to detect CobaltStrike and crypto-mining behavior.
+* Correlate Zeek and Suricata alerts to identify C2 servers, malware channels, and MITRE ATT&CK mappings.
+* Verify malicious activity through VirusTotal and correlate findings with network patterns.
 
-## Tools Used
+## **Tools Used**
+* Virtual Machine: https://tryhackme.com/room/zeekbroexercises
+* **Brim Security** – Zeek + Suricata-based PCAP analysis
+* **ZQL Queries** – for filtering, counting, and correlation
+* **VirusTotal** – IOC and C2 verification
+* **CyberChef** – for defanging URLs and IPs
 
-- **Brim Security** (full Zeek + Suricata parsing with live ZQL queries)
-- **ZQL queries** (count(), cut, sort -r, put total_bytes, event_type=="alert")
-- **VirusTotal** (IP relations & IOC files for 104.168.44.45)
-- **CyberChef** (defanging when needed)
 
 # Investigation
 
@@ -204,19 +203,22 @@ event_type=="alert" | cut alert.category, alert.metadata.mitre_technique_name, a
 1. Found tactic = **Impact**.
 2. MITRE ATT&CK tactic ID: **TA0040**.
 
-## Findings
+## **Findings**
 
-- **Malware C2**: Employee at 10.22.5.47 downloaded 4564.exe from CobaltStrike server 104.168.44.45 over 328 HTTPS (443) beaconing sessions; secondary channel was IcedID (confirmed via Suricata + VT IOC list).
-- **Crypto Mining**: 22 Stratum connections on port 19999, IRC control on port 6666, and exactly 3729 bytes sent to pool 101.201.172.235:8888; Suricata tagged activity under MITRE tactic Impact (TA0040).
+* CobaltStrike beaconing over HTTPS (443) from host `10.22.5.47` to C2 server `104.168.44.45`.
+* Secondary C2 channel confirmed as **IcedID** via Suricata and VirusTotal indicators.
+* Crypto-mining traffic detected using ports **19999** (Stratum) and **6666** (IRC).
+* **3729 bytes** transferred to mining pool `101.201.172.235:8888`.
+* Suricata mapped the event to **MITRE ATT&CK TA0040 – Impact**.
+* Confirmed external resource abuse and post-compromise persistence.
 
-## Lessons
+## **Lessons Learned**
 
-- Brim + ZQL beats Wireshark for speed—one line like count() by _path instantly shows what matters.
-- Always pivot on the busiest IP + port combo—it’s never innocent.
-- VirusTotal Relations tab is pure gold; one IP showed both CobaltStrike and IcedID in seconds.
-- Suricata already maps to MITRE—never waste time looking up tactic IDs manually.
-- Crypto mining hides in plain sight; port 19999 + IRC = dead giveaway every time.
-- Safe VM + Brim = I can hunt real malware campaigns without ever worrying about infection.
+* Brim’s ZQL queries accelerate deep network analysis far beyond Wireshark.
+* Pivoting on busiest IP-port pairs quickly exposes malicious patterns.
+* VirusTotal’s “Relations” view links related CobaltStrike and IcedID infrastructure easily.
+* Suricata’s MITRE mapping saves time on manual tactic identification.
+* Ports like 19999 (Stratum) and 6666 (IRC) are reliable crypto-mining indicators.
 
 ## Socials
 
