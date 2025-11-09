@@ -1,23 +1,23 @@
 # Zeek Network Traffic Analysis Exercise
 
-Virtual Machine Provided in: [https://tryhackme.com/room/zeekbroexercises](https://tryhackme.com/room/zeekbroexercises)
 
-### Objectives
+### **Objectives**
 
-- Investigated three separate real-world attack scenarios using Zeek inside TryHackMe’s fully isolated VM to confirm triggered alerts were true positives.
-- Analyzed DNS tunneling traffic to uncover IPv6 abuse and hidden command channels.
-- Confirmed a phishing campaign delivering macro-enabled documents and a secondary malicious executable.
-- Validated Log4J exploitation attempts including scanning tool, payload delivery, and base64-encoded shell commands.
-- Extracted, defanged, and enriched indicators across dns.log, http.log, files.log, and signatures.log without ever leaving the sandbox.
+* Analyze network captures to validate **DNS, phishing, and Log4J** alerts.
+* Use **Zeek** to extract and interpret log data from `.pcap` files.
+* Identify suspicious **domains, IPs, and payloads** linked to each attack.
+* Decode or enrich evidence with **CyberChef** and **VirusTotal** to confirm malicious behavior.
 
-## Tools Used
+---
 
-- **Zeek** (zeek -C -r, custom scripts: hash-demo.zeek, detection-log4j.zeek)
-- **zeek-cut** (parsing every log like a surgeon)
-- **CyberChef** (defanging domains/IPs + base64 decoding)
-- **VirusTotal** (file relations & behavior tabs for MD5 pivoting)
-- **bash utilities** (cat, grep, sort, uniq, wc -l, rev, cut, base64 --decode)
-- **pluma** (quick log viewing when zeek-cut wasn’t enough)
+### **Tools Used**
+* Virtual Machine Provided in: [https://tryhackme.com/room/zeekbroexercises](https://tryhackme.com/room/zeekbroexercises)
+* **Zeek** – network traffic analysis and log generation
+* **CyberChef** – defanging and base64 decoding
+* **VirusTotal** – file and domain reputation checks
+* **Linux CLI utilities** – `cat`, `grep`, `sort`, `uniq`, `wc`, `zeek-cut`
+
+---
 
 # Investigation
 
@@ -306,14 +306,15 @@ I investigated the provided PCAP.
 - **Phishing**: Source 10.6.27.102 → smart-fax[.]com delivered Invoice&MSO-Request.doc (VBA macros, MD5 b5243ec1…), dropped PleaseWaitWindow.exe which phoned home to dunlop[.]hopto[.]org via knr.exe.
 - **Log4J**: Nmap scanning triggered 3 signature hits, fetched .class exploit payloads, executed base64 commands that created /tmp/pwned → active RCE confirmed.
 
-## Lessons Learned
 
-- Zeek logs are gold—dns.log + conn.log alone exposed an entire tunneling campaign.
-- Always run zeek-cut first; raw cat is chaos, parsed fields are clarity.
-- Defang + VT pivot on every single hash—turns one file into a full kill-chain.
-- Base64 in logs almost always means “run this now”—decode instantly.
-- One custom Zeek script (detection-log4j.zeek) caught what normal signatures missed.
-- Safe VM + pre-loaded pcaps = zero fear, maximum learning—I broke nothing real but learned everything.
+### **Lessons Learned**
+
+* Zeek’s modular logs (`dns.log`, `conn.log`, `http.log`, `files.log`) make it fast to isolate suspicious activity across layers.
+* Filtering DNS queries and domain suffixes reveals tunneling or data exfiltration patterns.
+* Using VirusTotal hash lookups confirms **malware behavior** and related C2 domains quickly.
+* Base64 decoding often exposes clear attacker commands (e.g., file creation or execution).
+* Defanging IPs and domains is a safe, essential practice when documenting malicious indicators.
+
 
 ## Socials
 
