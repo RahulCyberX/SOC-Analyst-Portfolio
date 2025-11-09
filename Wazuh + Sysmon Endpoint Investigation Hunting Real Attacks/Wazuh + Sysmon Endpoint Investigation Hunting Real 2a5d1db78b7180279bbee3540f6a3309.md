@@ -2,10 +2,11 @@
 
 ## **Objectives**
 
-* Performed a full endpoint threat-hunting investigation using **Wazuh + Sysmon** inside TryHackMe’s isolated VM simulating a real red-team attack chain.
-* Identified every attack stage: phishing download via PowerShell, Base64-encoded scheduled task persistence, Guest account activation with privilege escalation, LSASS credential dumping, and data exfiltration to Pastebin.
-* Mapped every step to relevant **Sysmon and Windows Event IDs** (1, 3, 10, 4738) and decoded registry payloads directly from Wazuh logs.
-* Built a timeline of the complete **MITRE ATT&CK chain** from delivery to exfiltration using only Wazuh’s dashboard and filtering tools.
+* Investigate live Sysmon and Windows event data inside Wazuh to detect phishing, persistence, privilege escalation, and data exfiltration activity.
+* Correlate Event IDs 1, 3, 10, and 4738 to map attacker behavior across the full kill chain.
+* Decode Base64 registry payloads, analyze scheduled tasks, and confirm credential dumping through process access logs.
+* Track Guest account activation and password changes for unauthorized persistence attempts.
+* Build complete IOC timelines directly from the Wazuh dashboard using saved queries and time-based filters.
 
 ---
 
