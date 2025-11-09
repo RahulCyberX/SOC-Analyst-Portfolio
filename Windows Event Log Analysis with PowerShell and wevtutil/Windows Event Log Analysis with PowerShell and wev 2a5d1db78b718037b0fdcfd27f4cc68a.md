@@ -1,20 +1,25 @@
 # Windows Event Log Analysis with PowerShell and wevtutil
 
-# Objectives
+## **Objectives**
 
-- Mastered Windows Event Log analysis inside TryHackMe’s isolated Windows VM to go from zero to full incident response using only built-in tools.
-- Navigated Event Viewer, scripted queries with wevtutil.exe and Get-WinEvent, built surgical XPath filters, and hunted real attacks inside a merged.evtx file.
-- Detected PowerShell downgrade (ID 400), log clearing (ID 104), Emotet malware (ID 4104), and unauthorized local group enumeration (ID 4799)—all without installing anything extra.
-- Proved I can now turn thousands of raw events into timelines, IOCs, and answers in minutes.
-- Virtual Machine: https://tryhackme.com/room/windowseventlogs
+* Perform full **Windows Event Log forensics** using only native tools — Event Viewer, PowerShell, and wevtutil.
+* Query live and saved logs to detect **PowerShell abuse**, **log tampering**, **malware execution**, and **privilege misuse**.
+* Write and execute **XPath** and **FilterHashtable** queries to surgically extract indicators from thousands of raw events.
+* Identify malicious behavior such as **Emotet PowerShell (ID 4104)**, **log clearing (ID 104)**, **downgrade attempts (ID 400)**, and **group enumeration (ID 4799)**.
+* Build repeatable PowerShell workflows for DFIR, turning isolated `.evtx` files into full incident timelines—all within a secure TryHackMe Windows VM.
 
-# Tools Used
+---
 
-- **Event Viewer** (eventvwr.msc, filtering, XML details)
-- **wevtutil.exe** (el, qe, /q XPath, /lf, /rd, /c)
-- **PowerShell Get-WinEvent** (-ListLog, -ListProvider, -FilterHashtable, -FilterXPath, -Path for .evtx)
-- **XPath queries** (EventID, Provider, TimeCreated, EventData/Data[@Name])
-- **Where-Object + Format-List** (post-filter cleanup on saved logs)
+## **Tools Used**
+*  Virtual Machine: https://tryhackme.com/room/windowseventlogs
+* **Event Viewer** – visual filtering, custom views, and XML event details.
+* **wevtutil.exe** – command-line event log querying (`el`, `qe`, `/q`, `/lf`, `/rd`, `/c`).
+* **PowerShell Get-WinEvent** – XPath and FilterHashtable queries for log correlation.
+* **Where-Object & Select-Object** – post-processing of logs for offline `.evtx` files.
+* **XPath Filtering** – targeting attributes like `EventID`, `Provider`, and `TargetUserName`.
+* **CyberChef + VirusTotal (contextual lookups)** – decoding, defanging, and enrichment when needed.
+
+---
 
 # Investigation
 
@@ -644,14 +649,25 @@ Get-WinEvent -Path "C:\Users\Administrator\Desktop\merged.evtx" -FilterXPath "*[
 
 ---
 
-# Lessons Learned
+## **Findings**
 
-- Event Viewer GUI is fine for one-offs, but Get-WinEvent + XPath is the real DFIR superpower.
-- FilterHashtable dies on .evtx files—always fall back to Where-Object or XPath when offline.
-- Event ID 4104 ScriptBlockText hides the juiciest PowerShell payloads—never stop at the summary.
-- Log clearing always leaves a trace (1102/104)—attackers can’t fully hide.
-- XPath *[@Name="TargetUserName"]="Sam" beats regex every time for precision.
-- Safe VM + merged.evtx = I just investigated four real attacks without ever touching a production box.
+* **PowerShell Downgrade Attack:** Detected via `Event ID 400`, timestamp `12/18/2020 7:50:33 AM`.
+* **Event Log Clearing:** Recorded as `Event ID 104` from host `PC01.example.corp`, Record ID `27736`.
+* **Emotet Execution:** Logged as `Event ID 4104`; malicious variable `$Va5w3n8`, Process ID `6620`, timestamp `8/25/2020 10:09:28 PM`.
+* **Unauthorized Enumeration:** Intern executed `net1.exe` to query local admin group (`Event ID 4799`), SID `S-1-5-32-544`.
+* All four correlated within the same merged log, confirming a timeline from **execution → evasion → persistence → discovery**.
+
+---
+
+## **Lessons Learned**
+
+* **Get-WinEvent + XPath** beats GUI workflows—faster, scriptable, and precise for DFIR.
+* Even cleared logs leave trails (IDs 104 & 1102)—attackers can’t fully erase evidence.
+* **ScriptBlockText (4104)** is a goldmine for reconstructing PowerShell payloads.
+* Always correlate timestamps across EventIDs to rebuild adversary actions.
+* **XPath over FilterHashtable** for offline `.evtx`—essential for forensic automation.
+* Native Windows tooling alone is enough to detect, prove, and document real intrusions safely.
+
 
 # Socials
 
