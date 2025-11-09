@@ -1,23 +1,21 @@
 # Snort: Defending against a live attack
 
-Virtual Machine Provided in: [https://tryhackme.com/room/snortchallenges2](https://tryhackme.com/room/snortchallenges2)
-
 ## **Objectives**
 
-- Gained root access in the isolated TryHackMe VM and verified Snort installation to ensure full control over the lab environment.
-- Captured live traffic in sniffer mode (-devX) and logged it to disk (-dev -l .) to build reusable packet logs for analysis.
-- Used BPF filters and -A full to isolate SSH brute-force activity from 10.10.245.36 targeting port 22 (1452 packets).
-- Identified outbound reverse shell from 10.10.196.55 to port 4444 by spotting bash commands and file paths in payloads.
-- Created, tested, and deployed custom local.rules with unique sids to alert on both attacker IP and malicious port.
-- Ran Snort with -A full for 60 seconds to trigger desktop flags and prove both attacks were successfully detected and mitigated.
+- Use **Snort** to detect malicious traffic from `.pcap` captures.
+- Write and apply **custom IDS rules** for SSH brute-force and reverse shell activity.
+- Identify **attacker IPs, ports, and behaviors** from Snort outputs.
+- Validate alerts by reviewing packet details and payloads.
 
-## Tools Used
+---
 
-- **Snort** (-devX, -dev -l ., -r <log>, -A console, -A full, BPF filters)
-- **sudo -i** (root shell for everything)
-- **nano** (editing /etc/snort/rules/local.rules)
-- **ls -1 & cat** (finding and peeking snort.log.* timestamps)
-- **Ctrl+C timing** (15–60 second bursts to keep logs manageable)
+## **Tools Used**
+
+- Virtual Machine Provided in: https://tryhackme.com/room/snortchallenges2
+- **Snort** – packet capture, rule-based intrusion detection
+- **nano** – rule editing
+- **grep / strings / less** – log inspection
+- **BPF filters** – refine captured traffic
 
 # **Investigation**
 
@@ -286,14 +284,13 @@ There are several instances of connection back and forth **port 4444** by the in
     
 4. Stop Snort (Ctrl+C).
 
-## Lessons Learned
+### **Lessons Learned**
 
-- Always sudo -i first; Snort won’t work otherwise.
-- Log to disk instead of staring at live packets forever.
-- 15–20 second captures are perfect—longer just creates noise.
-- Backup local.rules every time; one typo = restart.
-- Write two rules (IP + port) so you’re covered even if the attacker changes address.
-- A console for testing, -A full for flags—never mix them up.
+- Snort’s **`devX`** mode is ideal for raw packet inspection — headers, payloads, and hex help visually confirm attack patterns.
+- Creating precise **host + port-based rules** helps pinpoint brute-force or reverse shell attempts quickly.
+- **TCP flags** (`S`, `SA`, `PA`) are critical indicators when verifying repeated connections or interactive shell traffic.
+- Always run Snort with **root privileges** and back up rule files before editing.
+- Combining **specific filters (host/port)** with **custom rule messages** ensures clear, actionable alerts for each scenario.
 
 ## Socials
 
