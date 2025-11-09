@@ -1,19 +1,25 @@
 # Directory Traversal Detection Using TShark
 
-# Objectives
+## **Objectives**
 
-- Investigated a real directory traversal phishing case inside TryHackMe’s fully isolated VM using only TShark and VirusTotal.
-- Turned 472 packets into a complete kill-chain: spotted malicious DNS, counted HTTP requests, followed TCP streams, exported live malware, and pulled sandbox verdicts.
-- Defanged every indicator and proved curiosity really does kill the cat—all safely in the sandbox.
-- Virtual Machine: https://tryhackme.com/room/tsharkchallengestwo
+* Analyze malicious directory traversal activity using **TShark** to uncover file listings, malware downloads, and C2 communication.
+* Extract and rank suspicious domains from DNS traffic, pivot to HTTP sessions, and reconstruct the attacker’s file server.
+* Export HTTP objects, hash the retrieved executable, and confirm its threat classification using **VirusTotal**.
+* Safely defang all indicators and correlate sandbox results with network behavior for accurate attribution.
+* Demonstrate how a single misconfigured directory index leads to malware exposure and execution.
+* Conduct all analysis in a **fully isolated TryHackMe VM**, ensuring zero real-world compromise risk.
 
-# Tools Used
+---
 
-- **TShark** (-r, -z io,phs, -Y filters, -T fields, -z follow,tcp,ascii, --export-objects http)
-- **VirusTotal** (domain → IP → file → Details/Behaviour tabs)
-- **CyberChef** (defang everything)
-- **sha256sum** (hashing the dropped exe)
-- **bash pipelines** (sort | uniq -c | sort -r = instant IOC ranking)
+## **Tools Used**
+*  Virtual Machine: https://tryhackme.com/room/tsharkchallengestwo
+* **TShark** – traffic parsing, filtering (`-Y`), protocol stats (`-z io,phs`), stream following (`-z follow,tcp,ascii`), and HTTP object extraction.
+* **VirusTotal** – IOC enrichment (domain → IP → hash → sandbox verdicts).
+* **CyberChef** – defanging domains, IPs, and URLs for safe reporting.
+* **sha256sum** – generate SHA256 hashes of dropped executables for verification.
+* **Bash pipelines** – (`sort | uniq -c | sort -r`) for quick IOC frequency analysis.
+
+---
 
 # Investigation
 
@@ -272,14 +278,29 @@ b4851333efaf399889456f78eac0fd532e9d8791b23a86a19402c1164aed20de
 
 ---
 
-# Lessons Learned
 
-- Protocol hierarchy (-z io,phs) is my compass —14 DNS frames in 472 packets = start there.
-- One weird domain (jx2-bavuong[.]com) in a sea of Bing = red flag every time.
-- -export-objects http drops live malware to disk in seconds—way faster than Wireshark GUI.
-- Follow TCP stream 0 in ASCII shows directory listings no filter ever will.
-- VT Behaviour tab > everything else—Lastline calling it “MALWARE TROJAN” ends the debate.
-- Safe VM + TShark = I just hunted real .NET malware without ever leaving the terminal
+## **Findings**
+
+* Malicious domain identified: **jx2-bavuong[.]com**, resolving to **141[.]164[.]41[.]174**.
+* **14 HTTP requests** made to this domain revealed multiple PHP and EXE files in a public directory listing.
+* Directory traversal exposed **123.php**, **vlauto.exe**, and **vlauto.php**.
+* Extracted executable **vlauto.exe** confirmed as malware via **VirusTotal**, SHA256 hash:
+  `b4851333efaf399889456f78eac0fd532e9d8791b23a86a19402c1164aed20de`.
+* VirusTotal **PEiD packer** → `.NET executable`; **Lastline Sandbox verdict** → *MALWARE TROJAN*.
+* Attacker hosted payloads on an **Apache/2.2.11 (Win32)** server running outdated **PHP/5.2.9**, confirming server misconfiguration and exploitation.
+
+---
+
+## **Lessons Learned**
+
+* **Protocol hierarchy** instantly directs focus—DNS and HTTP are where most threats live.
+* Publicly exposed directories remain one of the simplest yet most dangerous misconfigurations.
+* **TShark’s export and stream tools** make malware extraction faster than any GUI workflow.
+* Always hash and verify executables—sandbox verdicts provide the final confirmation of maliciousness.
+* Even small captures (472 packets) can contain a complete kill chain when analyzed methodically.
+* Working within a **sandboxed VM** enables safe hands-on malware investigation without any real risk.
+
+
 
 # Socials
 
