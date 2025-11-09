@@ -34,8 +34,13 @@ Hands-on portfolio demonstrating **40+ real SOC investigations** completed on Tr
 ## Certificates
 - Google Cybersecurity Professional Certificate – Sep 2025
 - TryHackMe Cybersecurity 101 - Sep 2025
-- TryHackMe SOC Level 1 Legacy - Nov 2025  
+- TryHackMe SOC Level 1 Legacy - Nov 2025 <br>
 - CompTIA Security+ SY0-701 – Expected Dec 2025  
+
+---
+**Note:** TryHackMe SOC Level 1 Legacy is the non simplified, comprehensive and more practical path with extra DFIR modules. 
+- Legacy version = 27 real tools
+- Modern version = 11 real tools
 
 ## Why Hire Me?
 - Top 2% in TryHackMe platform.
