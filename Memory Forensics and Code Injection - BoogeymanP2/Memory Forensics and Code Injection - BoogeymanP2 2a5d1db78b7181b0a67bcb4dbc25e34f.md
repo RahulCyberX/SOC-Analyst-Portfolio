@@ -285,7 +285,7 @@ Answer: `schtasks /Create /F /SC DAILY /ST 09:00 /TN Updater /TR 'C:\Windows\Sys
 
 **Repository:** https://github.com/RahulCyberX/SOC-Analyst-Portfolio/
 
-**Medium Article:** 
+**Medium Article:** https://rahulcyberx.medium.com/threat-investigation-boogeyman-2-soc-level-1-capstone-challenge-thm-5328e86d304f?sk=104b1fbe2d669e8efd01c5602c0eaebd
 
 **TryHackMe Profile:** https://tryhackme.com/p/0xRahuL
 
