@@ -368,7 +368,7 @@ Answer: `http://ff.sillytechninja.io/ransomboogey.exe`
     
     **Repository:** https://github.com/RahulCyberX/SOC-Analyst-Portfolio
     
-    **Medium Article:** 
+    **Medium Article:** https://rahulcyberx.medium.com/threat-investigation-boogeyman-3-soc-level-1-capstone-challenge-thm-f4748aec2da0?source=friends_link&sk=4626497dd8541fd1d1f9dadb40a3aa2f
     
     **TryHackMe Profile:** https://tryhackme.com/p/0xRahuL
     
