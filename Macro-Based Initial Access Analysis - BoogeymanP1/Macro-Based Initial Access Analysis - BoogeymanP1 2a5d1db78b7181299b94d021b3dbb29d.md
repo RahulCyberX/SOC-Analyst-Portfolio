@@ -522,7 +522,7 @@ Answer: `4024007128269551`
 
 **Repository:** https://github.com/RahulCyberX/SOC-Analyst-Portfolio/
 
-**Medium Article:** https://rahulcyberx.medium.com/threat-investigation-boogeyman-1-soc-level-1-capstone-challenge-thm-d5da9bb63a9d?sk=8540e5729df0b845d1478cf33221dca8
+**Medium Article:** https://rahulcyberx.medium.com/threat-investigation-boogeyman-1-soc-level-1-capstone-challenge-thm-d5da9bb63a9d?source=friends_link&sk=8540e5729df0b845d1478cf33221dca8
 
 **TryHackMe Profile:** https://tryhackme.com/p/0xRahuL
 
